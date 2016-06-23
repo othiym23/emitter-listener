@@ -8,14 +8,14 @@ var unwrap  = shimmer.unwrap;
 // dunderscores are boring
 var SYMBOL = 'wrap@before';
 
-function _process(self, listeners) {
+function _process(self, listeners, event) {
   var l = listeners.length;
   for (var p = 0; p < l; p++) {
     var listener = listeners[p];
     // set up the listener so that onEmit can do whatever it needs
     var before = self[SYMBOL];
     if (typeof before === 'function') {
-      before(listener);
+      before(listener, event);
     }
     else if (Array.isArray(before)) {
       var length = before.length;
@@ -42,20 +42,20 @@ function _listeners(self, event) {
 function _findAndProcess(self, event, before) {
   var after = _listeners(self, event);
   var unprocessed = after.filter(function(fn) { return before.indexOf(fn) === -1; });
-  if (unprocessed.length > 0) _process(self, unprocessed);
+  if (unprocessed.length > 0) _process(self, unprocessed, event);
 }
 
-function _wrap(unwrapped, visit) {
+function _wrap(unwrapped, visit, event) {
   if (!unwrapped) return;
 
   var wrapped = unwrapped;
   if (typeof unwrapped === 'function') {
-    wrapped = visit(unwrapped);
+    wrapped = visit(unwrapped, event);
   }
   else if (Array.isArray(unwrapped)) {
     wrapped = [];
     for (var i = 0; i < unwrapped.length; i++) {
-      wrapped[i] = visit(unwrapped[i]);
+      wrapped[i] = visit(unwrapped[i], event);
     }
   }
   return wrapped;
@@ -107,7 +107,7 @@ module.exports = function wrapEmitter(emitter, onAddListener, onEmit) {
           }
           finally {
             unwrapped = this._events[event];
-            this._events[event] = _wrap(unwrapped, onEmit);
+            this._events[event] = _wrap(unwrapped, onEmit, event);
           }
         };
       }
@@ -118,7 +118,7 @@ module.exports = function wrapEmitter(emitter, onAddListener, onEmit) {
          * still work while at the same time running whatever hooks are necessary to
          * make sure the listener is run in the correct context.
          */
-        this._events[event] = _wrap(unwrapped, onEmit);
+        this._events[event] = _wrap(unwrapped, onEmit, event);
         return emit.apply(this, arguments);
       }
       finally {
