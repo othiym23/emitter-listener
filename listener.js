@@ -8,6 +8,18 @@ var unwrap  = shimmer.unwrap;
 // dunderscores are boring
 var SYMBOL = 'wrap@before';
 
+// Sets a property on an object, preserving its enumerability.
+// This function assumes that the property is already writable.
+function defineProperty(obj, name, value) {
+  const enumerable = !!obj[name] && obj.propertyIsEnumerable(name);
+  Object.defineProperty(obj, name, {
+    configurable: true,
+    enumerable: enumerable,
+    writable: true,
+    value: value
+  });
+}
+
 function _process(self, listeners) {
   var l = listeners.length;
   for (var p = 0; p < l; p++) {
@@ -133,10 +145,10 @@ module.exports = function wrapEmitter(emitter, onAddListener, onEmit) {
 
   // support multiple onAddListeners
   if (!emitter[SYMBOL]) {
-    emitter[SYMBOL] = onAddListener;
+    defineProperty(emitter, SYMBOL, onAddListener);
   }
   else if (typeof emitter[SYMBOL] === 'function') {
-    emitter[SYMBOL] = [emitter[SYMBOL], onAddListener];
+    defineProperty(emitter, SYMBOL, [emitter[SYMBOL], onAddListener]);
   }
   else if (Array.isArray(emitter[SYMBOL])) {
     emitter[SYMBOL].push(onAddListener);
@@ -148,13 +160,13 @@ module.exports = function wrapEmitter(emitter, onAddListener, onEmit) {
     wrap(emitter, 'on',          adding);
     wrap(emitter, 'emit',        emitting);
 
-    emitter.__unwrap = function () {
+    defineProperty(emitter, '__unwrap', function () {
       unwrap(emitter, 'addListener');
       unwrap(emitter, 'on');
       unwrap(emitter, 'emit');
       delete emitter[SYMBOL];
       delete emitter.__wrapped;
-    };
-    emitter.__wrapped = true;
+    });
+    defineProperty(emitter, '__wrapped', true);
   }
 };

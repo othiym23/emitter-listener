@@ -38,12 +38,14 @@ test("bindEmitter", function (t) {
   });
 
   t.test("with all required parameters", function (t) {
-    t.plan(4);
+    t.plan(5);
 
     function nop() {}
     function passthrough(value) { return value; }
 
     var ee = new Emitter();
+    var numPropsBeforeWrap = Object.keys(ee).length;
+
     t.doesNotThrow(
       function () { wrapEmitter(ee, nop, passthrough); },
       "monkeypatches correctly"
@@ -56,6 +58,10 @@ test("bindEmitter", function (t) {
     });
 
     t.doesNotThrow(function () { ee.emit('test', 8); }, "emitting still works");
+
+    var numPropsAfterWrap = Object.keys(ee).length;
+    t.equal(numPropsAfterWrap, numPropsBeforeWrap,
+      'doesn\'t add extra enumerable properties');
   });
 
   t.test("when a listener removes another listener", function (t) {
