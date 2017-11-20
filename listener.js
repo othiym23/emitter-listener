@@ -11,7 +11,7 @@ var SYMBOL = 'wrap@before';
 // Sets a property on an object, preserving its enumerability.
 // This function assumes that the property is already writable.
 function defineProperty(obj, name, value) {
-  const enumerable = !!obj[name] && obj.propertyIsEnumerable(name);
+  var enumerable = !!obj[name] && obj.propertyIsEnumerable(name);
   Object.defineProperty(obj, name, {
     configurable: true,
     enumerable: enumerable,
