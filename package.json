@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/othiym23/emitter-listener",
   "devDependencies": {
-    "tap": "~0.4.6"
+    "tap": "^10.7.3"
   },
   "dependencies": {
     "shimmer": "^1.2.0"
