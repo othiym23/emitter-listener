@@ -1,6 +1,6 @@
 {
   "name": "emitter-listener",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "(Meta)observability for EventEmitters.",
   "main": "listener.js",
   "directories": {
