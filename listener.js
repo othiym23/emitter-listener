@@ -87,7 +87,7 @@ module.exports = function wrapEmitter(emitter, onAddListener, onEmit) {
    */
   function adding(on) {
     return function added(event, listener) {
-      var existing = _listeners(this, event);
+      var existing = _listeners(this, event).slice();
 
       try {
         var returned = on.call(this, event, listener);
