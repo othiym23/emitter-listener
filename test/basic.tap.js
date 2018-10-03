@@ -1,11 +1,13 @@
 'use strict';
 
-var test        = require('tap').test;
-var wrapEmitter = require('../listener.js');
-var Emitter     = require('events').EventEmitter;
+var test            = require('tap').test;
+var wrapEmitter     = require('../listener.js');
+var Emitter         = require('events').EventEmitter;
+var ServerResponse  = require('http').ServerResponse;
+var IncomingMessage = require('http').IncomingMessage;
 
 test("bindEmitter", function (t) {
-  t.plan(8);
+  t.plan(9);
 
   t.test("with no parameters", function (t) {
     t.plan(1);
@@ -167,5 +169,25 @@ test("bindEmitter", function (t) {
     t.notOk(ee.removeListener.__wrapped, "removeListener is not wrapped");
 
     ee.emit('test', 31);
+  });
+
+  t.test("when adding multiple handlers to a ServerResponse", function (t) {
+    t.plan(1);
+
+    var ee = new ServerResponse(new IncomingMessage());
+    var values = [];
+
+    ee.on('test', function (_) {});
+    ee.on('test', function (_) {});
+
+    wrapEmitter(
+      ee,
+      function marker() { values.push(1); },
+      function passthrough(handler) { return handler; }
+    );
+
+    ee.on('test', function (_) {});
+
+    t.deepEqual(values, [1], "marker function was not called");
   });
 });
