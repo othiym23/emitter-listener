@@ -142,25 +142,33 @@ test("bindEmitter", function (t) {
   });
 
   t.test("when wrapping the same emitter multiple times", function (t) {
-    t.plan(6);
+    t.plan(7);
 
     var ee = new Emitter();
-    var values = [];
+    var onAddListenerCalls = [];
+    var onEmitCalls = [];
     wrapEmitter(
       ee,
-      function marker() { values.push(1); },
-      function passthrough(handler) { return handler; }
+      function onAddListener() { onAddListenerCalls.push(1) },
+      function onEmit(handler) {
+        onEmitCalls.push(1);
+        return handler;
+      }
     );
 
     wrapEmitter(
       ee,
-      function marker() { values.push(2); },
-      function passthrough(handler) { return handler; }
+      function onAddListener() { onAddListenerCalls.push(2) },
+      function onEmit(handler) {
+        onEmitCalls.push(2);
+        return handler;
+      }
     );
 
     ee.on('test', function (value) {
       t.equal(value, 31, "got expected value");
-      t.deepEqual(values, [1, 2], "both marker functions were called");
+      t.deepEqual(onAddListenerCalls, [1, 2], "both onAddListener functions were called");
+      t.deepEqual(onEmitCalls, [2, 1], "both onEmit functions were called");
     });
 
     t.ok(ee.addListener.__wrapped, "addListener is wrapped");

@@ -154,11 +154,12 @@ module.exports = function wrapEmitter(emitter, onAddListener, onEmit) {
     emitter[SYMBOL].push(onAddListener);
   }
 
-  // only wrap the core functions once
+  // Only wrap `on` and `addListener` once. Correctly registering all
+  // `onAddListener` callbacks for multiple consecutive wrapEmitter calls for
+  // the same emitter is handled above by pushing them into an array if necessary.
   if (!emitter.__wrapped) {
     wrap(emitter, 'addListener', adding);
     wrap(emitter, 'on',          adding);
-    wrap(emitter, 'emit',        emitting);
 
     defineProperty(emitter, '__unwrap', function () {
       unwrap(emitter, 'addListener');
@@ -169,4 +170,11 @@ module.exports = function wrapEmitter(emitter, onAddListener, onEmit) {
     });
     defineProperty(emitter, '__wrapped', true);
   }
+
+  // Always wrap `emit`, no matter if the emitter has already been wrapped by
+  // an earlier wrapEmitter call or not. We need to make sure that all onEmit
+  // callbacks are registered. The `onEmit` handler from later wrapEmitter calls
+  // will wrap handlers from earlier calls. That is, they will be called in the
+  // reverse order of how they have been registered.
+  wrap(emitter, 'emit', emitting);
 };
